@@ -3,9 +3,9 @@ module SoundcloudStreamer
     package_name "Soundcloud Streamer v#{SoundcloudStreamer::VERSION}"
 
     desc "playlist <URL>", "streams and saves all tracks from the playlist"
-    method_options client_id: :string, target_dir: :string
+    method_options client_id: :string, target_dir: :string, overwrite: :boolean
     def playlist(url)
-      response = playlist = client.get('/resolve', url: url)
+      response = playlist = client.get('/resolve', url: url, limit: 100)
 
       if response.kind == 'playlist'
         instant_print "Going to Stream all #{playlist.tracks.count} Tracks from Playlist ...\r\n"
@@ -14,16 +14,26 @@ module SoundcloudStreamer
         exit(-8)
       end
 
-      track_num_justr = (playlist.tracks.count / 10.0).ceil
+      track_num_justr = playlist.tracks.count.to_s.length
       playlist.tracks.each_with_index do |track, track_idx|
         track_num = track_idx + 1
         track_num_str = track_num.to_s.rjust(track_num_justr, '0')
 
-        uri = URI.parse(track.stream_url)
-        uri.query = URI.encode_www_form(SoundCloud::Client::CLIENT_ID_PARAM_NAME => client_id)
+        unless track.streamable?
+          instant_print "Unstreamable-#{track_num}.\r\n"
+          next
+        end
 
         download_name = File.join(target_dir, [ track_num_str, ' ', track.title, '.mp3' ].join.gsub('/',' - ') )
         download_file = nil
+
+        if File.exist?(download_name) && !overwrite?
+          instant_print "Exisiting-#{track_num}.\r\n"
+          next
+        end
+
+        uri = URI.parse(track.stream_url)
+        uri.query = URI.encode_www_form(client_id: client_id)
 
         request = Typhoeus::Request.new(uri, followlocation: true)
         request.on_headers do |response|
@@ -124,6 +134,10 @@ module SoundcloudStreamer
         FileUtils.mkdir_p(target_dir)
       end
       target_dir
+    end
+
+    def overwrite?
+      options[:overwrite] || false
     end
 
     def instant_print(*params)
