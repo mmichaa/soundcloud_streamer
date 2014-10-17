@@ -18,13 +18,13 @@ Or install it yourself as:
 
 ## Usage
 
-    $ soundcloud_stream help
+    $ soundcloud_streamer help
 
-    $ soundcloud_stream help playlist
+    $ soundcloud_streamer help playlist
 
 ### Example
 
-    $ soundcloud_stream playlist https://soundcloud.com/mathew-steven-klein/sets/her-soundtrack --client-id=07b516960d652769d2a00c9a6a26f27d --target-dir="Her Soundtrack by Arcade Fire"
+    $ soundcloud_streamer playlist https://soundcloud.com/mathew-steven-klein/sets/her-soundtrack --client-id=07b516960d652769d2a00c9a6a26f27d --target-dir="Her Soundtrack by Arcade Fire"
 
 ## Contributing
 
